@@ -65,7 +65,7 @@ export default function FactChecker() {
           <div className="mt-4">
             <h2 className="font-bold">Response:</h2>
             <pre className="whitespace-pre-wrap">
-              {JSON.stringify(response, null, 2)}
+              {JSON.stringify(response.verdict, null, 2)}
             </pre>
           </div>
         )}
