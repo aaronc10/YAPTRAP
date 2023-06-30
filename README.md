@@ -46,25 +46,25 @@ GOOGLE_FACT_CHECK_TOOLS_KEY=your_google_fact_check_tools_key
 npm run start
 ```
 
-## API endpoints
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- **`POST /api/fact-claims?query={query}`**
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-  This endpoint accepts a query as a URL parameter and fetches fact checks related to the query. The response is a list of preprocessed fact checks.
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-- **`POST /api/generate-verdict`**
+## Learn More
 
-  This endpoint accepts a body with preprocessed fact claims and a query. It generates a verdict using OpenAI and returns the verdict in the response.
+To learn more about Next.js, take a look at the following resources:
 
-## Known issues
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- There may be issues if a fact check does not have a certain property that is expected in the preprocessing stage. This is mitigated by providing default values for each property.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-## Future Work
+## Deploy on Vercel
 
-- Improve the user interface for a better user experience.
-- Implement more detailed error handling.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## Conclusion
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
 This Fact Checker application is a simple yet powerful tool that leverages the power of OpenAI and Google Fact Check Tools to verify the authenticity of statements. It demonstrates how AI can be used to fight misinformation.
