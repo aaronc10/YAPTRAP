@@ -27,8 +27,8 @@ export default function FactChecker() {
     });
     console.log("got response", res);
     const data = await res.json();
-    
-    setResponse(data.verdict);
+
+    setResponse(data);
     setLoading(false);
   };
 
