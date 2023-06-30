@@ -5,6 +5,7 @@ export default function FactChecker() {
   const [claim, setClaim] = useState("");
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
+
   const [error, setError] = useState(null);
 
   const submitClaim = async () => {
@@ -24,14 +25,16 @@ export default function FactChecker() {
         "Content-Type": "application/json",
       },
     });
+    console.log("got response", res);
     const data = await res.json();
-    setResponse(data);
+    
+    setResponse(data.verdict);
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="p-6 min-w-[400px] bg-white rounded shadow-md w-80">
+      <div className="p-6 w-[500px] bg-white rounded shadow-md ">
         <h1 className="text-2xl font-bold mb-4 text-center">Fact Checker</h1>
         <div className="relative">
           <input
@@ -63,10 +66,10 @@ export default function FactChecker() {
         {loading && <p>Loading...</p>}
         {response && (
           <div className="mt-4">
-            <h2 className="font-bold">Response:</h2>
-            <pre className="whitespace-pre-wrap">
-              {JSON.stringify(response.verdict, null, 2)}
-            </pre>
+            <h2 className="font-bold ">Response:</h2>
+            <section className="whitespace-pre-line">
+              {JSON.stringify(response).replace(/\\n/g, "\n"). replace(/\\t/g, "\t").replace(/\\r/g, "\r")}
+            </section>
           </div>
         )}
       </div>
