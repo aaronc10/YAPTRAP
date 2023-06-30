@@ -59,7 +59,7 @@ export default function FactChecker() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-6 w-[500px] bg-white rounded shadow-md ">
+      <div className="p-6 bg-white rounded shadow-md min-w-[300px] max-w-[500px] ">
         {/*... same as before */}
         <h1 className="mb-4 text-2xl font-bold text-center">Fact Checker</h1>
         <div className="relative">
@@ -114,7 +114,7 @@ export default function FactChecker() {
                   <p>
                     <strong>Publisher:</strong> {review.publisher}
                   </p>
-                  <p>
+                  <p className="pr-4 overflow-hidden whitespace-normal overflow-ellipsis">
                     <strong>URL:</strong> {review.url}
                   </p>
                   <p>
