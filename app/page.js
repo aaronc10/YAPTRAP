@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function FactChecker() {
   const [claim, setClaim] = useState("");
+  const [defaultState, setDefaultState] = useState(true);
   const [loadingClaims, setLoadingClaims] = useState(false);
   const [loadingVerdict, setLoadingVerdict] = useState(false);
   const [factClaims, setFactClaims] = useState([]);
@@ -12,6 +13,7 @@ export default function FactChecker() {
   const [error, setError] = useState(null);
 
   const submitClaim = async () => {
+
     // Clear previous error message
     setError(null);
 
@@ -34,6 +36,7 @@ export default function FactChecker() {
       setLoadingClaims(false);
     } catch (error) {
       setError(error.toString());
+      setDefaultState(false)
       setLoadingClaims(false);
     }
 
@@ -52,10 +55,10 @@ export default function FactChecker() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="p-6 w-[500px] bg-white rounded shadow-md ">
         {/*... same as before */}
-        <h1 className="text-2xl font-bold mb-4 text-center">Fact Checker</h1>
+        <h1 className="mb-4 text-2xl font-bold text-center">Fact Checker</h1>
         <div className="relative">
           <input
             type="text"
@@ -65,7 +68,7 @@ export default function FactChecker() {
             onChange={(e) => setClaim(e.target.value)}
           />
           <svg
-            className="w-6 h-6 absolute left-3 top-3 text-gray-400"
+            className="absolute w-6 h-6 text-gray-400 left-3 top-3"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -78,18 +81,18 @@ export default function FactChecker() {
           </svg>
         </div>
         <button
-          className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-500 mt-4"
+          className="w-full px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-500"
           onClick={submitClaim}>
           Submit
         </button>
         {error && <p className="mt-2 text-red-500">{error}</p>}
-        {loadingClaims && <p>Loading Fact Claims...</p>}
+        { loadingClaims && <p>Loading Fact Claims...</p>}
 
-        {loadingClaims || factClaims.length === 0 ? (
+        {!defaultState && factClaims.length === 0 ? (
           <p>No valid fact claims found for the given query.</p>
         ) : (
           factClaims.map((claim, index) => (
-            <div key={index} className="border p-2 my-2">
+            <div key={index} className="p-2 my-2 border">
               <h3 className="font-bold">Claim {index + 1}:</h3>
               <p>
                 <strong>Text:</strong> {claim.claimText}
