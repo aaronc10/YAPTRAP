@@ -1,10 +1,13 @@
 "use client";
+
 import { useState } from "react";
 
 export default function FactChecker() {
   const [claim, setClaim] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState(null);
+  const [loadingClaims, setLoadingClaims] = useState(false);
+  const [loadingVerdict, setLoadingVerdict] = useState(false);
+  const [factClaims, setFactClaims] = useState([]);
+  const [verdict, setVerdict] = useState(null);
 
   const [error, setError] = useState(null);
 
@@ -18,23 +21,40 @@ export default function FactChecker() {
       return;
     }
 
-    setLoading(true);
-    const res = await fetch(`/api/check-fact?query=${claim}`, {
+    setLoadingClaims(true);
+    try {
+      const resClaims = await fetch(`/api/fact-claims?query=${claim}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const dataClaims = await resClaims.json();
+      setFactClaims(dataClaims.factClaims);
+      setLoadingClaims(false);
+    } catch (error) {
+      setError(error.toString());
+      setLoadingClaims(false);
+    }
+
+    setLoadingVerdict(true);
+    const resVerdict = await fetch(`/api/generate-verdict`, {
       method: "POST",
+      body: JSON.stringify({ claims: factClaims, query: claim }),
       headers: {
         "Content-Type": "application/json",
       },
     });
-    console.log("got response", res);
-    const data = await res.json();
 
-    setResponse(data);
-    setLoading(false);
+    const dataVerdict = await resVerdict.json();
+    setVerdict(dataVerdict.verdict);
+    setLoadingVerdict(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="p-6 w-[500px] bg-white rounded shadow-md ">
+        {/*... same as before */}
         <h1 className="text-2xl font-bold mb-4 text-center">Fact Checker</h1>
         <div className="relative">
           <input
@@ -63,12 +83,55 @@ export default function FactChecker() {
           Submit
         </button>
         {error && <p className="mt-2 text-red-500">{error}</p>}
-        {loading && <p>Loading...</p>}
-        {response && (
+        {loadingClaims && <p>Loading Fact Claims...</p>}
+
+        {loadingClaims || factClaims.length === 0 ? (
+          <p>No valid fact claims found for the given query.</p>
+        ) : (
+          factClaims.map((claim, index) => (
+            <div key={index} className="border p-2 my-2">
+              <h3 className="font-bold">Claim {index + 1}:</h3>
+              <p>
+                <strong>Text:</strong> {claim.claimText}
+              </p>
+              <p>
+                <strong>Claimant:</strong> {claim.claimant}
+              </p>
+              <p>
+                <strong>Date:</strong> {claim.claimDate}
+              </p>
+              <p>
+                <strong>Reviews:</strong>
+              </p>
+              {claim.claimReviews.map((review, reviewIndex) => (
+                <div key={reviewIndex} className="pl-4">
+                  <p>
+                    <strong>Publisher:</strong> {review.publisher}
+                  </p>
+                  <p>
+                    <strong>URL:</strong> {review.url}
+                  </p>
+                  <p>
+                    <strong>Title:</strong> {review.title}
+                  </p>
+                  <p>
+                    <strong>Rating:</strong> {review.rating}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ))
+        )}
+        {loadingVerdict && <p>Loading Verdict...</p>}
+        {verdict && (
           <div className="mt-4">
-            <h2 className="font-bold ">Response:</h2>
+            <h2 className="font-bold ">Verdict:</h2>
             <section className="whitespace-pre-line">
-              {JSON.stringify(response).replace(/\\n/g, "\n"). replace(/\\t/g, "\t").replace(/\\r/g, "\r")}
+              {JSON.stringify(verdict)
+                .replace(/\\n/g, "\n")
+                .replace(/\\t/g, "\t")
+                .replace(/\\r/g, "\r")
+                .replace(/\\n/g, " ")}
             </section>
           </div>
         )}
