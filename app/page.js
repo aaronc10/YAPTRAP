@@ -13,7 +13,6 @@ export default function FactChecker() {
   const [error, setError] = useState(null);
 
   const submitClaim = async () => {
-
     // Clear previous error message
     setError(null);
 
@@ -31,12 +30,16 @@ export default function FactChecker() {
           "Content-Type": "application/json",
         },
       });
+
       const dataClaims = await resClaims.json();
-      setFactClaims(dataClaims.factClaims);
+
+      setFactClaims(dataClaims.factClaims || []);
+
+
       setLoadingClaims(false);
     } catch (error) {
       setError(error.toString());
-      setDefaultState(false)
+      setDefaultState(false);
       setLoadingClaims(false);
     }
 
@@ -48,7 +51,7 @@ export default function FactChecker() {
         "Content-Type": "application/json",
       },
     });
-
+    console.log('got from api',resVerdict)
     const dataVerdict = await resVerdict.json();
     setVerdict(dataVerdict.verdict);
     setLoadingVerdict(false);
@@ -86,7 +89,7 @@ export default function FactChecker() {
           Submit
         </button>
         {error && <p className="mt-2 text-red-500">{error}</p>}
-        { loadingClaims && <p>Loading Fact Claims...</p>}
+        {loadingClaims && <p>Loading Fact Claims...</p>}
 
         {!defaultState && factClaims.length === 0 ? (
           <p>No valid fact claims found for the given query.</p>
