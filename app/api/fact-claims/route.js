@@ -27,7 +27,7 @@ function preprocessClaim(claim) {
   };
 }
 
-export async function POST(request) {
+export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const claims = searchParams.get("query");
   try {

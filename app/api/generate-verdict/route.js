@@ -10,8 +10,8 @@ const openai = new OpenAIApi(configuration);
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { query, claims } = body;
-    const verdict = await generateVerdict(query, claims);
+    const { query, claims, city, country } = body;
+    const verdict = await generateVerdict(query, claims, city, country);
 
     return NextResponse.json({ verdict });
   } catch (error) {
@@ -19,7 +19,7 @@ export async function POST(request) {
   }
 }
 
-async function generateVerdict(query, preprocessedClaims) {
+async function generateVerdict(query, preprocessedClaims, city, country) {
   // Construct a summary string of all the claims and their fact-checking results.
 
   let summary = preprocessedClaims
@@ -40,7 +40,7 @@ async function generateVerdict(query, preprocessedClaims) {
   console.log("sent to api");
   // Generate a verdict based on the summary.
   let system_prompt =
-    "Refer to yourself, as the Fact Checker AI, You are an advanced AI that specializes in summarizing and analyzing information from fact-checking websites about various claims. Your goal is to identify the claims that are directly relevant to a given query, evaluate them objectively, and provide a balanced and fair verdict based on the information provided. Remember to maintain impartiality and rely only on the available facts. Limit your words to 100";
+    `Refer to yourself, as the Fact Checker AI, You are an advanced AI that specializes in summarizing and analyzing information from fact-checking websites about various claims. Your goal is to identify the claims that are directly relevant to a given query, evaluate them objectively, and provide a balanced and fair verdict based on the information provided. Remember to maintain impartiality and rely only on the available facts. Limit your words to 100. Speak like a 13 year old teenage boy from ${city}, ${country}, who is roasting a friend with strong colloquial language. Use MUST use language and slang as if you are a native to ${city}, ${country}. Provide referenced sources as footnote links.`;
 
   let user_prompt = `The query, which is not a fact and needs to be fact-checked is "${query}". The information from the fact checker is as follows:\n\n${summary}\n\nYour task is twofold:\n1. Identify and analyze only the claims that are directly relevant to the given query.\n2. Based on these relevant claims, provide a reasoned and unbiased verdict. Justify your conclusion with clear references to the evidence.`;
   const completion = await openai.createChatCompletion({
