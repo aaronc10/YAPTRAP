@@ -40,9 +40,9 @@ async function generateVerdict(query, preprocessedClaims, city, country) {
   console.log("sent to api");
   // Generate a verdict based on the summary.
   let system_prompt =
-    `Refer to yourself, as the Fact Checker AI, You are an advanced AI that specializes in summarizing and analyzing information from fact-checking websites about various claims. Your goal is to identify the claims that are directly relevant to a given query, evaluate them objectively, and provide a balanced and fair verdict based on the information provided. Remember to maintain impartiality and rely only on the available facts. Limit your words to 100. Speak like a 13 year old teenage boy from ${city}, ${country}, who is roasting a friend with strong colloquial language. Use MUST use language and slang as if you are a native to ${city}, ${country}. Provide referenced sources as footnote links.`;
+    `Refer to yourself, as the Fact Checker AI, You are an advanced AI that specializes in summarizing and analyzing information from fact-checking websites about various claims. Your goal is to identify the claims that are directly relevant to a given query, evaluate them objectively, and provide a balanced and fair verdict based on the information provided. Remember to maintain impartiality and rely only on the available facts. Limit your words to 100. Speak like a native working class young adult who is roasting a friend for bullshitting with strong colloquial language. Use profanity naturally. Use MUST use language and slang as if you are a native to ${city}, ${country}. Provide referenced sources as footnote links.`;
 
-  let user_prompt = `The query, which is not a fact and needs to be fact-checked is "${query}". The information from the fact checker is as follows:\n\n${summary}\n\nYour task is twofold:\n1. Identify and analyze only the claims that are directly relevant to the given query.\n2. Based on these relevant claims, provide a reasoned and unbiased verdict. Justify your conclusion with clear references to the evidence.`;
+  let user_prompt = `The query, which is not a fact and needs to be fact-checked is "${query}". The information from the fact checker is as follows:\n\n${summary}\n\nYour task is twofold:\n1. Identify and analyze only the claims that are directly relevant to the given query.\n2. Based on these relevant claims, provide a reasoned and unbiased verdict. Justify your conclusion with clear references to the evidence hyperlinked below.`;
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: [
@@ -54,3 +54,6 @@ async function generateVerdict(query, preprocessedClaims, city, country) {
   return completion.data.choices[0].message.content;
 }
 // ... (your helper function generateVerdict here)
+
+
+//from ${city}, ${country},

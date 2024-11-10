@@ -5,6 +5,10 @@ import { useState, useEffect } from "react";
 import axios from "axios"
 import Microphone from "./components/microphone"
 import speech, { useSpeechRecognition } from 'react-speech-recognition';
+import TextToSpeech from "./components/TextToSpeech";
+import React from "react";
+import ReactDom from "react-dom";
+import AudioStream from "./components/AudioStream";
 
 
 export default function FactChecker() {
@@ -14,43 +18,11 @@ export default function FactChecker() {
   const [loadingVerdict, setLoadingVerdict] = useState(false);
   const [factClaims, setFactClaims] = useState([]);
   const [verdict, setVerdict] = useState(null);
-  const {listening, transcript} = useSpeechRecognition();
-  const [transcriptState, setTranscriptState] = useState("");
-
-
-  
-  
-
-  const handleMicHold = (isHolding) => {
-    if (isHolding) {
-      setTranscriptState("");
-      setClaim("");
-      console.log("mic hold");
-      speech.startListening({ continuous: true });
-
-    } else {
-      speech.stopListening();
-    }
-  };
-
-
-  // store transcript in state
-  speech.onResult = async (event) => {
-    const transcript = event.results[0][0].transcript;
-    console.log('transcript', transcript);
-    setTranscriptState(transcript);
-  }
-
-
-  // handle speech recognition & send to claim
-  // const handleSpeechRecognition = (transcript) => {
-  //   setClaim(transcript);
-  
-  // }
-  
-
+  const {listening, transcript, resetTranscript} = useSpeechRecognition();
   const [error, setError] = useState(null);
-
+  
+  const apiKey = process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY;
+  
   const [locationState, setLocationState] = useState({
     ip: "",
     countryName: "",
@@ -58,6 +30,74 @@ export default function FactChecker() {
     city: "",
     timezone: ""
   });
+  
+  
+
+  const handleMicHold = (isHolding) => {
+    if (isHolding) {
+      resetTranscript();
+      setClaim("");
+      speech.startListening({ continuous: true });
+    } else {
+      speech.stopListening();
+      if (transcript && transcript.trim() !== "") {
+        handleSubmitClaim(transcript);
+      }
+    }
+  };
+
+  const handleSubmitClaim = async (transcriptText) => {
+    setError(null);
+    
+    if (!transcriptText.trim()) {
+      setError("Claim cannot be empty.");
+      return;
+    }
+    
+    setClaim(transcriptText);
+    setLoadingClaims(true);
+    try {
+      const resClaims = await fetch(`/api/fact-claims?query=${transcriptText}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const dataClaims = await resClaims.json();
+      setFactClaims(dataClaims.factClaims || []);
+      setLoadingClaims(false);
+    } catch (error) {
+      setError(error.toString());
+      setDefaultState(false);
+      setLoadingClaims(false);
+      return;
+    }
+
+    setLoadingVerdict(true);
+    const resVerdict = await fetch(`/api/generate-verdict`, {
+      method: "POST",
+      body: JSON.stringify({ 
+        claims: factClaims, 
+        query: transcriptText, 
+        city: locationState.city, 
+        country: locationState.countryName 
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const dataVerdict = await resVerdict.json();
+    setVerdict(dataVerdict.verdict);
+    setLoadingVerdict(false);
+  };
+
+  useEffect(() => {
+    if (!listening && transcript && transcript.trim() !== "") {
+      setClaim(transcript);
+    }
+  }, [listening, transcript]);
+
 
   const getGeoInfo = () => {
     axios
@@ -71,6 +111,7 @@ export default function FactChecker() {
           city: data.city,
           timezone: data.timezone
         });
+        console.log(locationState)
       })
       .catch((error) => {
         console.log(error);
@@ -81,86 +122,23 @@ export default function FactChecker() {
     getGeoInfo();
   }, []);
 
-  const submitClaim = async () => {
-    // Clear previous error message
-    setError(null);
-
-    // Check for empty claim
-    if (!claim.trim()) {
-      setError("Claim cannot be empty.");
-      return;
-    }
-
-    setLoadingClaims(true);
-    try {
-      const resClaims = await fetch(`/api/fact-claims?query=${claim}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const dataClaims = await resClaims.json();
-
-      setFactClaims(dataClaims.factClaims || []);
-
-
-      setLoadingClaims(false);
-    } catch (error) {
-      setError(error.toString());
-      setDefaultState(false);
-      setLoadingClaims(false);
-    }
-
-    setLoadingVerdict(true);
-    const resVerdict = await fetch(`/api/generate-verdict`, {
-      method: "POST",
-      body: JSON.stringify({ claims: factClaims, query: claim, city: locationState.city, country: locationState.countryName }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    console.log('got from api',resVerdict)
-    const dataVerdict = await resVerdict.json();
-    setVerdict(dataVerdict.verdict);
-    setLoadingVerdict(false);
-  };
-
-  useEffect(() => {
-    if (!listening && transcript) {
-      setClaim(transcript);
-    }
-  }, [listening, transcript]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-6 bg-white rounded shadow-md min-w-[300px] max-w-[500px] ">
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="p-6 bg-gray-800 rounded-lg min-w-[300px] max-w-[500px] ">
         {/*... same as before */}
-        <h1 className="mb-4 text-2xl font-bold text-center">Bullshit Detector</h1>
-        <div className="w-full flex flex-col justify-center items-center pb-4 gap-4">
-          <Microphone onMicHold={handleMicHold} submitClaim={submitClaim} />
-          {listening ? <p>Listening...</p> : <p>Tap to detect bullsh!t</p>}
-          {claim && <p>{claim}</p>}
-        </div>
-        {/* <div className="relative">
-          <input
-            type="text"
-            className="w-full p-2 pl-10 border rounded"
-            placeholder="Enter a claim..."
-            value={claim}
-            onChange={(e) => setClaim(e.target.value)}
-          />
-        </div>
-        <button
-          className="w-full px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-500"
-          onClick={submitClaim}>
-          Submit
-        </button> */}
-        {error && <p className="mt-2 text-red-500">{error}</p>}
-        {loadingClaims && <p>Loading Fact Claims...</p>}
-
+        <h1 className="mb-4 text-2xl font-bold text-center text-white">Bullshit Detector</h1>
+          <div className="w-full flex flex-col justify-center items-center pb-4 gap-4">
+            <Microphone onMicHold={handleMicHold} />
+              {listening ? <p className="text-white">Listening...</p> : <p className="text-white">Tap to detect bullsh!t</p>}
+              {claim && <p className="text-white">{claim}</p>}
+              {error && <p className="mt-2 text-red-500">{error}</p>}
+              {loadingClaims && <p className="text-white">Loading Fact Claims...</p>}
+          </div>
         {!defaultState && factClaims.length === 0 ? (
-          <p>No valid fact claims found for the given query.</p>
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-white">No valid fact claims found for the given query.</p>
+          </div>
         ) : (
           factClaims.map((claim, index) => (
             <div key={index} className="p-2 my-2 border">
@@ -196,11 +174,11 @@ export default function FactChecker() {
             </div>
           ))
         )}
-        {loadingVerdict && <p>Loading Verdict...</p>}
+        {loadingVerdict && <p className="text-white">Loading Verdict...</p>}
         {verdict && (
-          <div className="mt-4">
-            <h2 className="font-bold ">Verdict:</h2>
-            <section className="whitespace-pre-line">
+          <div className="mt-4 text-white flex flex-col items-center justify-center pb-10">
+            <AudioStream text={JSON.stringify(verdict)} voiceId="Vpv1YgvVd6CHIzOTiTt8" apiKey={apiKey} />
+            <section className="whitespace-pre-line hidden">
               {JSON.stringify(verdict)
                 .replace(/\\n/g, "\n")
                 .replace(/\\t/g, "\t")
