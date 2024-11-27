@@ -1,4 +1,3 @@
-
 // AudioStream.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -13,6 +12,8 @@ interface AudioStreamProps {
   text: string;
   apiKey: string;
   voiceSettings: VoiceSettings;
+  screen: string;
+  handleAudioStream: () => void;
 }
 
 const AudioStream: React.FC<AudioStreamProps> = ({
@@ -20,7 +21,9 @@ const AudioStream: React.FC<AudioStreamProps> = ({
   text,
   apiKey,
   voiceSettings,
-  
+  screen,
+  handleAudioStream,
+
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,6 +32,7 @@ const AudioStream: React.FC<AudioStreamProps> = ({
 
   const startStreaming = async () => {
     setLoading(true);
+    console.log("loading voice:", {voiceId, text, voiceSettings, hasAPIKey: !!apiKey, screen});
     setError("");
 
     const baseUrl = "https://api.elevenlabs.io/v1/text-to-speech";
@@ -42,6 +46,8 @@ const AudioStream: React.FC<AudioStreamProps> = ({
       voice_settings: voiceSettings,
     };
 
+    console.log("Starting streaming:", {voiceId, text, voiceSettings, hasAPIKey: !!apiKey, screen});
+
     try {
       const response = await axios.post(`${baseUrl}/${voiceId}`, requestBody, {
         headers,
@@ -50,11 +56,13 @@ const AudioStream: React.FC<AudioStreamProps> = ({
 
       if (response.status === 200) {
         const audio = new Audio(URL.createObjectURL(response.data));
-        audio.play();
-        
         // Event Listeners
         audio.addEventListener("ended", () => { setIsStreaming(false);});
-        audio.addEventListener("play", () => { setIsStreaming(true);});
+        audio.addEventListener("play", () => { setIsStreaming(true); handleAudioStream();
+        console.log("audio playing");
+
+        });
+        audio.play();
 
         console.log("isStreaming", isStreaming);
 
@@ -69,17 +77,18 @@ const AudioStream: React.FC<AudioStreamProps> = ({
   };
 
   useEffect(() => {
-    if (text) {
+    if (text && screen === "loading") {
+      console.log("audio buffering", text);
       startStreaming();
     }
-  }, [text]);
+  }, [text, screen]);
 
   return (
-    <div>
-      <button onClick={startStreaming} disabled={loading} className="bg-blue-600 text-white rounded-sm p-2 w-auto h-10 flex justify-center items-center hover:bg-gray-700 transition-colors duration-300">
+    <div className="flex flex-col items-center justify-center p-8 hidden">
+      <button onClick={startStreaming} disabled={loading} className="bg-blue-600 text-gray-100 rounded-sm p-2 w-auto h-10 flex justify-center items-center hover:bg-gray-700 transition-colors duration-300">
         {loading ? "Checking your bullshit..." : "Hear the Truth"}
       </button>
-      {error && <p>{error}</p>}
+      {error && <p className="text-gray-500">{error}</p>}
     </div>
   );
 };

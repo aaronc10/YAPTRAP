@@ -1,15 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    forceSwcTransforms: true,
-  },
-  webpack: (config, { isServer }) => {
+  swcMinify: true,
+  webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
     };
     return config;
-  },
+  }
 }
 
 module.exports = nextConfig

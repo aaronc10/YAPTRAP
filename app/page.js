@@ -1,11 +1,11 @@
 "use client";
 
 import "regenerator-runtime/runtime";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios"
 import Microphone from "./components/microphone"
 import speech, { useSpeechRecognition } from 'react-speech-recognition';
-import TextToSpeech from "./components/TextToSpeech";
+import TextToSpeech from "./components/texttospeech";
 import React from "react";
 import ReactDom from "react-dom";
 import AudioStream from "./components/AudioStream";
@@ -20,6 +20,8 @@ export default function FactChecker() {
   const [verdict, setVerdict] = useState(null);
   const {listening, transcript, resetTranscript} = useSpeechRecognition();
   const [error, setError] = useState(null);
+  const [screen, setScreen] = useState("main");
+
   
   const apiKey = process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY;
   
@@ -30,8 +32,10 @@ export default function FactChecker() {
     city: "",
     timezone: ""
   });
-  
-  
+
+  const handleAudioStream = useCallback(() => {
+    setScreen("verdict");
+  }, []);
 
   const handleMicHold = (isHolding) => {
     if (isHolding) {
@@ -42,9 +46,15 @@ export default function FactChecker() {
       speech.stopListening();
       if (transcript && transcript.trim() !== "") {
         handleSubmitClaim(transcript);
+        setScreen("loading");
       }
     }
   };
+
+  const testClaim = () => {
+    handleSubmitClaim("Google");
+    setScreen("loading");
+  } 
 
   const handleSubmitClaim = async (transcriptText) => {
     setError(null);
@@ -63,6 +73,7 @@ export default function FactChecker() {
           "Content-Type": "application/json",
         },
       });
+
 
       const dataClaims = await resClaims.json();
       setFactClaims(dataClaims.factClaims || []);
@@ -90,6 +101,10 @@ export default function FactChecker() {
     const dataVerdict = await resVerdict.json();
     setVerdict(dataVerdict.verdict);
     setLoadingVerdict(false);
+    if(dataVerdict.verdict) {
+      setScreen("loading");
+    }
+    console.log('audio buffering');
   };
 
   useEffect(() => {
@@ -123,75 +138,138 @@ export default function FactChecker() {
   }, []);
 
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <div className="p-6 bg-gray-800 rounded-lg min-w-[300px] max-w-[500px] ">
-        {/*... same as before */}
-        <h1 className="mb-4 text-2xl font-bold text-center text-white">Bullshit Detector</h1>
-          <div className="w-full flex flex-col justify-center items-center pb-4 gap-4">
-            <Microphone onMicHold={handleMicHold} />
-              {listening ? <p className="text-white">Listening...</p> : <p className="text-white">Tap to detect bullsh!t</p>}
-              {claim && <p className="text-white">{claim}</p>}
-              {error && <p className="mt-2 text-red-500">{error}</p>}
-              {loadingClaims && <p className="text-white">Loading Fact Claims...</p>}
-          </div>
+  // Screen Components 
+
+  const Header = () => {
+    const handleHeaderClick = () => {
+      setVerdict(null);
+      setClaim("");
+      setScreen("main");
+    }
+
+    return (
+      <div className="absolute top-10 left-0 w-full h-10 flex flex-row justify-center items-center cursor-pointer" onClick={handleHeaderClick}>
+        <h1 className="font-OT2049-black mb-4 text-4xl font-bold text-center text-white">YAPTRAP</h1>
+      </div>
+    );
+  };
+
+  const MainScreen = () => {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-primary flex-col">
+    <div className="p-6 rounded-lg min-w-[300px] max-w-[500px] ">
+      {/*... same as before */}
+        <div className="w-full flex flex-col justify-center items-center pb-4 gap-20">
+            {listening ? <p className="text-2xl font-OT2049-thin text-white">Listening...</p> : <p className="text-2xl font-OT2049-thin text-white">HOLD TO YAP</p>}
+          <Microphone onMicHold={handleMicHold} />
+          <button onClick={testClaim} className="bg-white text-primary p-2 rounded-lg">Test Claim</button>
+
+        </div>
+      </div>
+      </div>
+    );
+  };
+
+  const LoadingScreen = () => {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-primary flex-col">
+            <p className="text-2xl font-OT2049-thin text-white">SCANNING FOR CAP</p>
+            {claim && <p className="text-white">{claim}</p>}
+            {error && <p className="mt-2 text-red-500">{error}</p>}
+            {loadingClaims && <p className="text-white">Loading Fact Claims...</p>}
+      </div>
+    );
+  };
+
+  const FactClaimsScreen = () => {
+    return (
+      <div className="flex items-center justify-center w-full bg-primary flex-col">
         {!defaultState && factClaims.length === 0 ? (
           <div className="flex flex-col items-center justify-center">
             <p className="text-white">No valid fact claims found for the given query.</p>
           </div>
         ) : (
-          factClaims.map((claim, index) => (
-            <div key={index} className="p-2 my-2 border">
-              <h3 className="font-bold">Claim {index + 1}:</h3>
-              <p>
-                <strong>Text:</strong> {claim.claimText}
-              </p>
-              <p>
+          factClaims.slice(0, 5).map((claim, index) => (
+            <div key={index} className="font-neueMontreal w-full p-2 my-2 bg-white/5 rounded-lg flex flex-col gap-2">
+                <div className="flex flex-row gap-4">
+                    <h3 className="text-white font-bold">{index + 1}</h3>
+                    <p className="text-white">
+                  {claim.claimText}
+                  </p>
+                </div>
+                
+                <p className="text-white hidden">
                 <strong>Claimant:</strong> {claim.claimant}
               </p>
-              <p>
+              <p className="text-white hidden">
                 <strong>Date:</strong> {claim.claimDate}
               </p>
-              <p>
+              <p className="text-white hidden">
                 <strong>Reviews:</strong>
               </p>
-              {claim.claimReviews.map((review, reviewIndex) => (
-                <div key={reviewIndex} className="pl-4">
-                  <p>
-                    <strong>Publisher:</strong> {review.publisher}
+              {claim.claimReviews.slice(0, 1).map((review, reviewIndex) => (
+                <div key={reviewIndex} className="flex flex-row gap-2 hidden">
+                  <p className="text-white">
+                    {review.publisher}
                   </p>
-                  <p className="pr-4 overflow-hidden whitespace-normal overflow-ellipsis">
+                  <p className="overflow-hidden whitespace-normal overflow-ellipsis text-white hidden">
                     <strong>URL:</strong> {review.url}
                   </p>
-                  <p>
+                  <p className="text-white hidden">
                     <strong>Title:</strong> {review.title}
                   </p>
-                  <p>
-                    <strong>Rating:</strong> {review.rating}
+                  <p className="text-white/50 max-h-[30px] overflow-hidden">
+                    {review.rating}
                   </p>
                 </div>
               ))}
             </div>
           ))
         )}
-        {loadingVerdict && <p className="text-white">Loading Verdict...</p>}
+      </div>
+    );
+  };
+
+  const VerdictScreen = () => {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-primary flex-col">
         {verdict && (
-          <div className="mt-4 text-white flex flex-col items-center justify-center pb-10">
-            <AudioStream text={JSON.stringify(verdict)} voiceId="Vpv1YgvVd6CHIzOTiTt8" apiKey={apiKey} />
-            <section className="whitespace-pre-line hidden">
+          <div className="mt-4 font-OT2049-thin uppercase text-2xl text-white flex flex-col items-center justify-center pb-10">
+            <section className="whitespace-pre-line">
               {JSON.stringify(verdict)
                 .replace(/\\n/g, "\n")
                 .replace(/\\t/g, "\t")
                 .replace(/\\r/g, "\r")
-                .replace(/\\n/g, " ")}
+                //.replace(/\\n/g, " ")
+                }
             </section>
+            
+            
           </div>
         )}
-        <div className="flex flex-col items-center justify-center">
-          <p className="text-xs uppercase text-gray-300">Country: {locationState.countryName}</p>
-          <p className="text-xs uppercase text-gray-300">City: {locationState.city}</p>
-        </div>
+            <FactClaimsScreen />
       </div>
+    );
+  };
+
+
+
+  return (
+    <div className="flex flex-col items-center justify-center pl-10 pr-10 pt-20 pb-10 bg-primary">
+      <Header />
+      <AudioStream 
+        screen={screen} 
+        text={verdict} 
+        voiceId="1TE7ou3jyxHsyRehUuMB" 
+        apiKey={apiKey} 
+        handleAudioStream={handleAudioStream} 
+        voiceSettings={{
+              stability: 0.1,
+              similarity_boost: 0.1
+            }}/>
+      {screen === "main" && <MainScreen />}
+      {screen === "loading" && <LoadingScreen />}
+      {screen === "verdict" && <VerdictScreen />}
     </div>
   );
 }

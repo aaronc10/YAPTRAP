@@ -1,3 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: 'NeueMontreal', sans-serif;
+}
+
+@layer base {
+  @font-face {
+    font-family: 'OT2049';
+    src: url('/fonts/OT2049-Regular.otf');
+  }
+  @font-face {
+    font-family: 'OT2049-black';
+    src: url('/fonts/OT2049-Black.otf');
+  }
+  @font-face {
+    font-family: 'OT2049-thin';
+    src: url('/fonts/OT2049-Thin.otf');
+  }
+
+  @font-face {
+    font-family: 'PPFormula';
+    src: url('/fonts/PPFormula-SemiCondensed.otf');
+  }
+
+  @font-face {
+    font-family: 'NeueMontreal';
+    src: url('/fonts/NeueMontreal-Regular.otf'); 
+  }
+}
+

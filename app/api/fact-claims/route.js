@@ -40,7 +40,7 @@ export async function GET(request) {
 
 async function fetch_fact_claims(query) {
   const response = await fetch(
-    `https://factchecktools.googleapis.com/v1alpha1/claims:search?query=${query}&key=${process.env.KEY}`,
+    `https://factchecktools.googleapis.com/v1alpha1/claims:search?query=${query}&key=${process.env.GOOGLE_FACT_CHECK_TOOLS_KEY}`,
     {
       method: "GET",
       headers: {
