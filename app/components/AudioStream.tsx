@@ -1,5 +1,5 @@
 // AudioStream.tsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 
 interface VoiceSettings {
@@ -30,7 +30,7 @@ const AudioStream: React.FC<AudioStreamProps> = ({
   const [isStreaming, setIsStreaming] = useState(false);
 
 
-  const startStreaming = async () => {
+  const startStreaming = useCallback(async () => {
     setLoading(true);
     console.log("loading voice:", {voiceId, text, voiceSettings, hasAPIKey: !!apiKey, screen});
     setError("");
@@ -74,14 +74,14 @@ const AudioStream: React.FC<AudioStreamProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [text, voiceId, apiKey, voiceSettings, screen, handleAudioStream, isStreaming]);
 
   useEffect(() => {
     if (text && screen === "loading") {
       console.log("audio buffering", text);
       startStreaming();
     }
-  }, [text, screen]);
+  }, [text, screen, startStreaming]);
 
   return (
     <div className="flex flex-col items-center justify-center p-8 hidden">

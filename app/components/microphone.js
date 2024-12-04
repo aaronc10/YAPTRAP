@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 function Microphone({onMicHold}) {
   const handleTouchStart = () => {
     console.log("touch start");
@@ -18,15 +20,18 @@ function Microphone({onMicHold}) {
       
       {/* Main button */}
       <button 
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         onMouseDown={handleTouchStart}
         onMouseUp={handleTouchEnd}
         className="relative bg-white text-white p-2 rounded-full w-[150px] h-[150px] flex justify-center items-center 
                  hover:bg-gray-700 transition-all duration-300
                  active:scale-90 
                  before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-white before:animate-ping before:opacity-20
-                 after:content-[''] after:absolute after:inset-0 after:rounded-full after:bg-white after:animate-pulse after:opacity-40"
+                 after:content-[''] after:absolute after:inset-0 after:rounded-full after:bg-white after:animate-pulse after:opacity-40  
+                 -webkit-touch-callout: none; -webkit-text-size-adjust: none; -webkit-user-select: none;    "
       >
-        <img src="/yapicon.svg" alt="microphone" className="w-[80px] h-[80px] relative z-10" />
+        <Image src="/yapicon.svg" alt="microphone" className="w-[80px] h-[80px] relative z-10" width={80} height={80} />
       </button>
     </div>
   );

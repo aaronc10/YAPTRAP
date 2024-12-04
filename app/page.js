@@ -114,7 +114,7 @@ export default function FactChecker() {
   }, [listening, transcript]);
 
 
-  const getGeoInfo = () => {
+  const getGeoInfo = useCallback(() => {
     axios
       .get("https://ipapi.co/json/")
       .then((response) => {
@@ -131,11 +131,11 @@ export default function FactChecker() {
       .catch((error) => {
         console.log(error);
       });
-  };
+  }, [locationState]);
 
   useEffect(() => {
     getGeoInfo();
-  }, []);
+  }, [getGeoInfo]);
 
 
   // Screen Components 

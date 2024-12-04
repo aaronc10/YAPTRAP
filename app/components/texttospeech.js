@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 export default function TextToSpeech({text}) {  
     const speak = async () => {
         try {
@@ -26,7 +26,7 @@ export default function TextToSpeech({text}) {
         <button 
             onClick={speak}
             className="bg-gray-200 text-white p-2 rounded-full w-20 h-20 flex justify-center items-center hover:bg-gray-700">
-            <img src="/microphone.svg" alt="microphone" className="w-6 h-6" />
+            <Image src="/microphone.svg" alt="microphone" className="w-6 h-6" width={24} height={24} />
         </button>
     );
 }
